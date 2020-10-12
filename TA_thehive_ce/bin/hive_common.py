@@ -369,3 +369,10 @@ configuration for instance {} ".format(th_instance))
         return None
 
     return config_args
+
+
+def replace_token_text(text, data):
+    for key in re.findall(r'\%([a-zA-Z0-9_]+)\%', text):
+        if key in data:
+            text = text.replace('%{}%'.format(key), data[key])
+    return text

@@ -26,7 +26,7 @@
 # https://docs.splunk.com/Documentation/Splunk/8.0.3/AdvancedDev/ModAlertsAdvancedExample
 import csv
 import gzip
-from hive_common import get_customField_dict, get_datatype_dict, prepare_config
+from hive_common import get_customField_dict, get_datatype_dict, prepare_config, replace_token_text
 import json
 import os
 import re
@@ -155,7 +155,10 @@ def create_alert(helper, config, results, app_name):
             if newSource not in [None, '']:
                 # grabs that field's value and assigns it to our sourceRef
                 sourceRef = newSource
-        helper.log_debug("[HA304] sourceRef: {} ".format(sourceRef))
+        new_config_unique = replace_token_text(config['unique'], row)
+        if new_config_unique != config['unique']:
+            sourceRef = new_config_unique
+        helper.log_debug("[HA304] new sourceRef: {} ".format(sourceRef))
         # find the field name used for a valid timestamp
         # and strip it from the row
         timestamp[sourceRef] = config['timestamp']
@@ -177,7 +180,7 @@ def create_alert(helper, config, results, app_name):
         helper.log_debug("[HA306] alert timestamp: {} ".format(timestamp[sourceRef]))
         # check if description contains a field name instead of a string.
         # if yes, strip it from the row and assign value to description
-        description[sourceRef] = config['description']
+        description[sourceRef] = replace_token_text(config['description'], row)
         if config['description'] in row:
             newDescription = str(row.pop(config['description']))  # grabs that field's value
             if newDescription not in [None, '']:
@@ -185,7 +188,7 @@ def create_alert(helper, config, results, app_name):
         helper.log_debug("[HA307] alert description: {} ".format(description[sourceRef]))
         # check if title contains a field name instead of a string.
         # if yes, strip it from the row and assign value to title
-        title[sourceRef] = config['title']
+        title[sourceRef] = replace_token_text(config['title'], row)
         if config['title'] in row:
             newTitle = str(row.pop(config['title']))  # grabs that field's value
             if newTitle not in [None, '']:
